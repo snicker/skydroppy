@@ -10,7 +10,8 @@ first things first: OAuth your app with your users
 
 To use this library you must have a developer account to the Skydrop API. You can try emailing api@skydrop.com asking for developer access to your account.
 
-You'll have to navigate the OAuth2 flow per the docs to get a user `code` which can be used to collect the access and refresh token for users: [Skydrop API Documentation](https://api.skydrop.com/apps/docs)
+You'll have to navigate the OAuth2 flow per the docs to get a user `code` which can be used to collect the access and refresh token for users: 
+`Skydrop API Documentation <https://api.skydrop.com/apps/docs>`_
 
 There are a few helper methods in the client to assist with that 
 
