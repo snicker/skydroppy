@@ -98,6 +98,10 @@ class SkydropController(object):
     @property
     def short_id(self):
         return self.id[:8]
+    
+    @property
+    def zones(self):
+        return self._zones
 
     def __repr__(self):
         return 'Ctrlr "{}" [{}] (id:{})'.format(self.name, "On" if self._controller_data.get('on') else "Off", self.id)
