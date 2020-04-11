@@ -4,9 +4,9 @@ skydroppy
 
 A python library to interface with the Skydrop sprinkler controller API.
 
----------
+---------------------------------------------------
 first things first: OAuth your app with your users
----------
+---------------------------------------------------
 
 To use this library you must have a developer account to the Skydrop API. You can try emailing api@skydrop.com asking for developer access to your account.
 
@@ -15,9 +15,9 @@ You'll have to navigate the OAuth2 flow per the docs to get a user `code` which 
 
 There are a few helper methods in the client to assist with that 
 
----------
+-------------
 example code
----------
+-------------
 
 documentation coming later, for now, feel free to explore the code
 
