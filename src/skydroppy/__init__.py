@@ -269,8 +269,8 @@ class SkydropClient(object):
     async def update_controllers(self):
         path = "{}users/get.controller.ids".format(self._base_url)
         res = await self._get(path)
+        logging.debug("update_controllers response: {}".format(res))
         if 'controller_ids' in res:
-            self._controllers = []
             for cdata in res['controller_ids']:
                 id = cdata.get('public_controller_id')
                 if not self.get_controller(id):
