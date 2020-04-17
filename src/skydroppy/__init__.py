@@ -7,6 +7,8 @@ import time
 
 DEFAULT_BASE_URL = "https://api.skydrop.com/"
 
+_LOGGER = logging.getLogger(__name__)
+
 class SkydropZone(object):
     def __init__(self, controller, id):
         self._controller = controller
@@ -125,7 +127,7 @@ class SkydropController(object):
         path = "{}controllers/{}/zones/{}/water.zone".format(
             self._client._base_url, self.id, zone_id)
         res = await self._client._post(path)
-        logging.debug("water_zone response: {}".format(res))
+        _LOGGER.debug("water_zone response: {}".format(res))
         if 'success' in res:
             await self.update_state()
             return True
@@ -135,7 +137,7 @@ class SkydropController(object):
         path = "{}controllers/{}/water.stop".format(
             self._client._base_url, self.id)
         res = await self._client._post(path)
-        logging.debug("stop_watering response: {}".format(res))
+        _LOGGER.debug("stop_watering response: {}".format(res))
         if 'success' in res:
             await self.update_state()
             return True
@@ -145,7 +147,7 @@ class SkydropController(object):
         path = "{}controllers/{}/controller.config".format(
             self._client._base_url, self.id)
         res = await self._client._put(path, json=data)
-        logging.debug("_set_configuration ({}) response: {}".format(data, res))
+        _LOGGER.debug("_set_configuration ({}) response: {}".format(data, res))
         expire = time.time() + timeout
         success = res.get('success')
         while not success and expire > time.time():
@@ -153,14 +155,14 @@ class SkydropController(object):
             await self.update_data()
             success = sum([self._controller_data.get(k) != v for k,v in data.items()]) == 0
         if not success:
-            logging.error('failed to update configuration on controller {} with data {} after {}s'.format(self.id, data, timeout))
+            _LOGGER.error('failed to update configuration on controller {} with data {} after {}s'.format(self.id, data, timeout))
         return success
 
     async def _set_zone_configuration(self, zone_id, data, timeout = 20):
         path = "{}controllers/{}/zone.config/{}".format(
             self._client._base_url, self.id, zone_id)
         res = await self._client._put(path, json=data)
-        logging.debug("_set_zone_configuration ({}) response: {}".format(data, res))
+        _LOGGER.debug("_set_zone_configuration ({}) response: {}".format(data, res))
         expire = time.time() + timeout
         success = res.get('success')
         zone = self.get_zone(zone_id)
@@ -169,7 +171,7 @@ class SkydropController(object):
             await self.update_data()
             success = sum([zone._zone_data.get(k) != v for k,v in data.items()]) == 0
         if not success:
-            logging.error('failed to update zone {} config on controller {} with data {} after {}s'.format(zone_id, self.id, data, timeout))
+            _LOGGER.error('failed to update zone {} config on controller {} with data {} after {}s'.format(zone_id, self.id, data, timeout))
         return success
 
     async def update(self):
@@ -180,7 +182,7 @@ class SkydropController(object):
         path = "{}controllers/{}/all.config".format(
             self._client._base_url, self.id)
         res = await self._client._get(path)
-        logging.debug("update_data response: {}".format(res))
+        _LOGGER.debug("update_data response: {}".format(res))
         if 'controller_data' in res:
             self._controller_data = res['controller_data']
             self.name = self._controller_data.get('name')
@@ -199,7 +201,7 @@ class SkydropController(object):
         path = "{}controllers/{}/water.state".format(
             self._client._base_url, self.id)
         res = await self._client._get(path)
-        logging.debug("update_state response: {}".format(res))
+        _LOGGER.debug("update_state response: {}".format(res))
         if res.get('success') and 'zone_states' in res:
             self._zone_states = res['zone_states']
         for zone_state in self._zone_states:
@@ -269,7 +271,7 @@ class SkydropClient(object):
     async def update_controllers(self):
         path = "{}users/get.controller.ids".format(self._base_url)
         res = await self._get(path)
-        logging.debug("update_controllers response: {}".format(res))
+        _LOGGER.debug("update_controllers response: {}".format(res))
         if 'controller_ids' in res:
             for cdata in res['controller_ids']:
                 id = cdata.get('public_controller_id')
