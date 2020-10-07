@@ -238,6 +238,7 @@ class SkydropClient(object):
         self._base_url = DEFAULT_BASE_URL
         self._client_id = client_id
         self._client_secret = client_secret
+        self._single_controller = False
 
         self._tokens = {
             'access': None,
@@ -269,9 +270,21 @@ class SkydropClient(object):
                 return c
         
     async def update_controllers(self):
+        if self._single_controller:
+            return await self._update_single_controller()
+        else:
+            return await self._update_multi_controllers()
+
+    async def _update_multi_controllers(self):
         path = "{}users/get.controller.ids".format(self._base_url)
-        res = await self._get(path)
-        _LOGGER.debug("update_controllers response: {}".format(res))
+        try:
+            res = await self._get(path)
+        except SkydropClient.GatewayTimeout:
+            _LOGGER.debug("gateway timeout in _update_multi_controllers," + \
+                "assuming single controller")
+            self._single_controller = True
+            return await self._update_single_controller()
+        _LOGGER.debug("_update_multi_controllers response: {}".format(res))
         if 'controller_ids' in res:
             for cdata in res['controller_ids']:
                 id = cdata.get('public_controller_id')
@@ -279,6 +292,19 @@ class SkydropClient(object):
                     name = cdata.get('name')
                     cont = SkydropController(client=self, id=id, name=name)
                     self._controllers.append(cont)
+        for cont in self._controllers:
+            await cont.update()
+        return self._controllers
+
+    async def _update_single_controller(self):
+        path = "{}users/default.controller.id".format(self._base_url)
+        res = await self._get(path)
+        _LOGGER.debug("_update_single_controller response: {}".format(res))
+        if 'controller_id' in res:
+            id = res.get('controller_id')
+            if not self.get_controller(id):
+                cont = SkydropController(client=self, id=id, name="None")
+                self._controllers.append(cont)
         for cont in self._controllers:
             await cont.update()
         return self._controllers
@@ -332,6 +358,8 @@ class SkydropClient(object):
             raise SkydropClient.TooManyRequests(error)
         elif status == 500:
             raise SkydropClient.InternalServerError(error)
+        elif status == 504:
+            raise SkydropClient.GatewayTimeout(error)
         else:
             raise SkydropClient.ClientError(error)
 
@@ -364,6 +392,10 @@ class SkydropClient(object):
 
     class ClientError(Exception):
         """Generic Error."""
+        pass
+
+    class GatewayTimeout(ClientError):
+        """504 Gateway Timeout."""
         pass
 
     class Unauthorized(ClientError):
